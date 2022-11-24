@@ -3,6 +3,7 @@
 version = 3
 
 [[package]]
+<<<<<<< HEAD
 name = "actix-codec"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1155,3 +1156,7 @@ dependencies = [
  "cc",
  "libc",
 ]
+=======
+name = "blogger"
+version = "0.1.0"
+>>>>>>> main
