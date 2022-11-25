@@ -1,9 +1,4 @@
-// // define an Ip:Port combo from https://doc.rust-lang.org/std/net/enum.IpAddr.html
-// struct URL {
-//     Protocol: String,
-//     Ip: IpAddr::V4,
-//     Port: i32,
-// }
+use std::net::TcpListener;
 
 // if a test fails, we panic. No need to propagate errors
 fn spawn_app() -> String {
@@ -11,7 +6,7 @@ fn spawn_app() -> String {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind");
 
     // retrieve the port chosen by the OS
-    let port = listener.local_addr().unwrap().port();
+    let port = listener.local_addr().port().expect("Failed to get the port");
 
     let server = blogger::run(listener)?;
     
