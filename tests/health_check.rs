@@ -6,9 +6,9 @@ fn spawn_app() -> String {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind");
 
     // retrieve the port chosen by the OS
-    let port = listener.local_addr().port().expect("Failed to get the port");
+    let port = listener.local_addr().unwrap().port();
 
-    let server = blogger::run(listener)?;
+    let server = blogger::run(listener).expect("Failed to bind address");
     
     // Launch the server as a background task
     // tokio::spawn returns a handle to the spawned future
