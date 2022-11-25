@@ -6,3 +6,27 @@ fn spawn_app() {
     // except we don't need it, so _
     let _ = tokio::spawn(server);
 }
+
+#[tokio::test]
+async fn health_check_test() {
+    spawn_app();
+
+    // issue requests against the app
+    let client = reqwest::Client::new();
+
+    let response = client
+        .get("http://localhost:8000/health_check")
+        .send()
+        .await
+        .expect("Failed to execute request.");
+
+        // make sure we get 200 back
+        assert!(response.status().is_success());
+
+        // make sure there's no body
+        assert_eq!(Some(0)), response.content_length());
+}
+
+async fn spawn_app() -> std::io::Result<()> {
+    
+}
