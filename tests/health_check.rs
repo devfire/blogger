@@ -15,6 +15,7 @@ fn spawn_app() -> String {
     // except we don't need it, so _
     let _ = tokio::spawn(server);
 
+    // run `cargo test -- --nocapture` to see the output
     println!("Binding to {}", port);
 
     // return the enum back to the caller
