@@ -2,8 +2,8 @@ use std::net::TcpListener;
 use crate::startup::run;
 
 // use blogger::run;
-mod startup;
-mod routes;
+pub mod startup;
+pub mod routes;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
