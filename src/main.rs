@@ -1,13 +1,13 @@
 use std::net::TcpListener;
-use crate::startup::run;
-
-// use blogger::run;
-pub mod startup;
-pub mod routes;
+use blogger::startup::run;
+use blogger::config::get_config;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    let listener = TcpListener::bind("127.0.0.1:8000").expect(r#"Failed to bind."#);
+    
+    let config = get_config().expect("Failed to read config");
+    let address = format!("127.0.0.1:{}",config.application_port);
+    let listener = TcpListener::bind(address)?;
 
     run(listener)?.await
 }
