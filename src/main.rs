@@ -1,11 +1,11 @@
 use blogger::config::get_config;
 use blogger::startup::run;
-use sqlx::{Connection, PgConnection};
+use sqlx::PgPool;
 use std::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    let configuration = get_configuration().expect("Failed to read configuration.");
+    let configuration = get_config().expect("Failed to read configuration.");
     // Renamed!
     let connection_pool = PgPool::connect(&configuration.database.connection_string())
         .await
