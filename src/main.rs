@@ -5,12 +5,12 @@ use std::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    let config = get_config().expect("Failed to read config");
-    let address = format!("127.0.0.1:{}", config.application_port);
-    let listener = TcpListener::bind(address)?;
-    let connection = PgConnection::connect(&config.database.connection_string())
+    let configuration = get_configuration().expect("Failed to read configuration.");
+    // Renamed!
+    let connection_pool = PgPool::connect(&configuration.database.connection_string())
         .await
         .expect("Failed to connect to Postgres.");
-
-    run(listener, connection)?.await
+    let address = format!("127.0.0.1:{}", configuration.application_port);
+    let listener = TcpListener::bind(address)?;
+    run(listener, connection_pool)?.await
 }
