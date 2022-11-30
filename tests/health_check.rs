@@ -1,43 +1,61 @@
+use blogger::config::get_config;
+use blogger::startup::run;
+use sqlx::PgPool;
 use std::net::TcpListener;
 
+pub struct TestApp {
+    pub address: String,
+    pub db_pool: PgPool,
+}
+
 // if a test fails, we panic. No need to propagate errors
-fn spawn_app() -> String {
-  
+async fn spawn_app() -> TestApp {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind");
 
     // retrieve the port chosen by the OS
     let port = listener.local_addr().unwrap().port();
 
-    let server = blogger::startup::run(listener).expect("Failed to bind address");
-    
-    // Launch the server as a background task
-    // tokio::spawn returns a handle to the spawned future
-    // except we don't need it, so _
+    let address = format!("http://127.0.0.1:{}", port);
+
+    let configuration = get_config().expect("Failed to read configuration.");
+    let connection_pool = PgPool::connect(&configuration.database.connection_string())
+        .await
+        .expect("Failed to connect to Postgres.");
+
+    let server = run(listener, connection_pool.clone()).expect("Failed to bind address");
     let _ = tokio::spawn(server);
 
-    // run `cargo test -- --nocapture` to see the output
-    println!("Binding to {}", port);
-
-    // return the enum back to the caller
-    format!("http://127.0.0.1:{}", port)
+    // return the struct combo with address + pool
+    TestApp {
+        address,
+        db_pool: connection_pool,
+    }
 }
 
 #[tokio::test]
 async fn health_check_test() {
-    let address = spawn_app();
+    let app = spawn_app().await;
 
     // issue requests against the app
     let client = reqwest::Client::new();
 
+    // Act
+    let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
     let response = client
-        .get(&format!("{}/health_check", &address))
+        .post(&format!("{}/subscriptions", &app.address))
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .body(body)
         .send()
         .await
         .expect("Failed to execute request.");
+    // Assert
+    assert_eq!(200, response.status().as_u16());
+    
+    let saved = sqlx::query!("SELECT email, name FROM subscriptions",)
+        .fetch_one(&app.db_pool)
+        .await
+        .expect("Failed to fetch saved subscription.");
 
-        // make sure we get 200 back
-        assert!(response.status().is_success());
-
-        // make sure there's no body
-        assert_eq!(Some(0), response.content_length());
+    assert_eq!(saved.email, "ursula_le_guin@gmail.com");
+    assert_eq!(saved.name, "le guin");
 }
